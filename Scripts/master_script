@@ -1,1 +1,483 @@
 #Script to execute all sub-scripts
+
+# A script in R to write the scripts to process the fasta files 
+# For fasta files that have been quality screened (converted from fastq to fasta using fastqc and pear)
+
+#Script names: uniq_seqences_mothur, blastn_all_unique_fasta_files.sh, unique_blast_sorted_tab_files.sh, 
+#....seqs_ids_sorted_blast_tab.sh, query_seqs_matches_original_seq_sorted_id.sh, blastdbcmd_full_seqs.sh
+#... sort_names_files.sh, join_names_files.sh, count_seqs_mothur, sorted_renamed.sh, deunique_seqs_mothur
+
+######## Unique each of the fasta files using mothur ###
+
+# Use R to write the series of commands to run in mothur
+
+# Read in the fasta files which need unique.seqs running on them
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# now write the script to run unique.seqs on each of the listed fasta files 
+
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "uniq_seqences_mothur", append = F)
+write.table("# A script to unique all the fasta files", quote = F, col.names = F, row.names = F, file = "uniq_seqences_mothur", append = T)
+write.table("mothur", quote = F, col.names = F, row.names = F, file = "uniq_seqences_mothur.sh", append = T)
+for(i in 1:length(fasta.files)){
+  mothur.unique.command<- paste("unique.seqs(fasta=", fasta.files[i], ")", sep = "")
+  write.table(mothur.unique.command, quote = F, row.names = F, col.names = F, file ="uniq_seqences_mothur", append = T)
+}
+
+
+######### blasting unique fasta files against the SILVA SSU NR database ####
+
+# Make the blast database
+# from within the directory where the downloaded fasta file is
+
+#makeblastdb -in SILVA_119_SSURef_Nr99_tax_silva.fasta -input_type fasta -dbtype nucl -title SILVA119NR -parse_seqids -out SILVA119NR
+
+# write a script to run blastn on each of the unique fasta files
+# again use R to write the script which needs to be executed to run blastn
+
+#R --vanilla
+
+# define the raw fasta files
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for blast
+
+unique.fasta.files<- paste(groups, ".unique.fasta", sep = "") 
+blast.files <- paste(groups, ".unique.blast.tab", sep = "")
+unique.fasta.files<- paste("/shared2/melina/MetaDataAnalysis_final/final4/Roeselers_2/", unique.fasta.files, sep = "")
+blast.files<- paste("/shared2/melina/MetaDataAnalysis_final/final4/Roeselers_2/", blast.files, sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "blastn_all_unique_fasta_files.sh", append = F)
+# add the blastn comands for each of the files
+for(i in 1:length(unique.fasta.files)){
+  command.blast<-paste("blastn -db Silva119NR -query ",unique.fasta.files[i], 
+                       " -out ", blast.files[i], " -evalue 0.000005 -num_threads 10 -outfmt 6 -perc_identity 97 -max_target_seqs 1", sep = "")
+  write.table(command.blast, quote = F, col.names = F, row.names = F, file ="blastn_all_unique_fasta_files.sh", append = T)
+}
+
+##################Sort *blast.tab files by column 1 before extracting the fasta sequences from SILVA119
+
+# define the raw fasta files
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for sort
+
+blast.files <- paste(groups, ".unique.blast.tab", sep = "")
+sorted.blast.files<- paste(groups, ".unique.blast.sorted.tab", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "unique_blast_sorted_tab_files.sh", append = F)
+
+for(i in 1:length(blast.files)){
+  sort.blast.tab<-paste("sort -k1,1 ", blast.files[i], " > ", sorted.blast.files[i], sep = "")
+  write.table(sort.blast.tab, quote = F, col.names = F, row.names = F, file ="unique_blast_sorted_tab_files.sh", append = T)
+}
+
+##################For each of the files, get the IDs of the Silva119 hits
+
+# define the raw fasta files
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for cat
+
+sorted.blast.files<- paste(groups, ".unique.blast.sorted.tab", sep = "")
+seqs.ids <- paste(groups, ".sequence.matches.in.silva119.sorted.id", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "seqs_ids_sorted_blast_tab.sh", append = F)
+
+for(i in 1:length(sorted.blast.files)){
+  seqs.ids.sorted.blast.tab<-paste("cat ", sorted.blast.files[i], " | cut -f2 > ", seqs.ids[i], sep = "")
+  write.table(seqs.ids.sorted.blast.tab, quote = F, col.names = F, row.names = F, file ="seqs_ids_sorted_blast_tab.sh", append = T)
+}
+
+#####################Get the IDs of the query sequences with blast hits#################
+
+# define the raw fasta files
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for cat
+
+sorted.blast.files<- paste(groups, ".unique.blast.sorted.tab", sep = "")
+seqs.ids2 <- paste(groups, ".query.seqs.with.matches.original.seq.sorted.id", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "query_seqs_matches_original_seq_sorted_id.sh", append = F)
+
+for(i in 1:length(sorted.blast.files)){
+  seqs.ids.sorted.blast.tab2<-paste("cat ", sorted.blast.files[i], " | cut -f1 > ", seqs.ids2[i], sep = "")
+  write.table(seqs.ids.sorted.blast.tab2, quote = F, col.names = F, row.names = F, file ="query_seqs_matches_original_seq_sorted_id.sh", append = T)
+}
+
+############################# Extract the full length sequence for each of the matches using blastdbcmd
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for blastdbcmd
+
+seqs.ids <- paste(groups, ".sequence.matches.in.silva119.sorted.id", sep = "")
+blastdbcmd.output<-paste(groups, "full.sequence.matches.unique.fasta", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "blastdbcmd_full_seqs.sh", append = F)
+
+for(i in 1:length(seqs.ids)){
+  blastdbcmd.output1<-paste("blastdbcmd -db /shared2/melina/MetaDataAnalysis/Silva119/SILVA119NR -dbtype nucl -entry_batch ", seqs.ids[i], " -out ", blastdbcmd.output[i], sep = "")
+  write.table(blastdbcmd.output1, quote = F, col.names = F, row.names = F, file ="blastdbcmd_full_seqs.sh", append = T)
+}
+
+###########################Sort the *.names file, sort alphabetically based on first column only -k1,1
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for sort
+
+names.files.input <- paste(groups, ".names", sep = "")
+names.files.output <-paste(groups, ".sorted.names", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "sort_names_files.sh", append = F)
+
+for(i in 1:length(names.files.input)){
+  names.files1<-paste("sort -k1,1 ", names.files.input[i], " > ", names.files.output[i], sep = "")
+  write.table(names.files1, quote = F, col.names = F, row.names = F, file ="sort_names_files.sh", append = T)
+}
+
+
+################################Extract only sequences with blast matches from the names files
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for join
+
+join.input1 <- paste(groups, ".query.seqs.with.matches.original.seq.sorted.id", sep = "")
+join.input2 <- paste(groups, ".sorted.names", sep = "")
+join.output <-paste(groups, ".filtered.match.sorted.names", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "join_names_files.sh", append = F)
+
+for(i in 1:length(names.files.input)){
+  join.files1<-paste("join ", join.input1[i], " ", join.input2[i], " > ", join.output[i], sep = "")
+  write.table(join.files1, quote = F, col.names = F, row.names = F, file ="join_names_files.sh", append = T)
+}
+
+##############################In mothur, make count file for each file###############################
+
+#output file = *.filtered.match.sorted.count_table
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for count.seqs
+count.seqs.input<-paste(groups, ".filtered.match.sorted.names", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "count_seqs_mothur", append = F)
+
+for(i in 1:length(count.seqs.input)){
+  count.seqs.1<-paste("count.seqs(name=", count.seqs.input, ")", sep = "")
+}
+
+write.table(count.seqs.1, quote = F, col.names = F, row.names = F, file ="count_seqs_mothur", append = T)
+
+
+##################################Rename the sequences in Dout.full_sequence_matches_unique_sorted.fasta with Dout2014all_1, Dout2014all_2, etc.
+#and save as Dout.full_sequence_matches_unique_sorted_ren.fasta 
+
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for count.seqs
+rename.input.1<-paste(">", groups, "_", sep = "")
+rename.input.2<-paste(groups, ".full.sequence.matches.unique.sorted.fasta", sep = "")
+rename.input.3<-paste(groups, ".full.sequence.matches.unique.sorted.ren.fasta", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "sorted_renamed.sh", append = F)
+
+for(i in 1:length(rename.input.1)){
+  sort.ren.1<-paste("awk '/^>/{print \"", rename.input.1, "\" ++i; next}{print}' ", rename.input.2, " > ", rename.input.3, sep = "")
+}
+
+write.table(sort.ren.1, quote = F, col.names = F, row.names = F, file ="sorted_renamed.sh", append = T)
+
+############################ Rename the sequences of the first column of *.filtered.match.sorted.count_table with *_1, *_2, etc.
+#and save as *.filtered.match.sorted.ren.count_table
+
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for count.seqs
+col.rename.input.1<-paste(groups, "_", sep = "")
+col.rename.input.2<-paste(groups, ".filtered.match.sorted.count_table", sep = "")
+col.rename.input.3<-paste(groups, ".output1.txt", sep = "")
+col.rename.input.4<-paste(groups, ".filtered.match.sorted.ren.count.table", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "col_renamed.sh", append = F)
+
+for(i in 1:length(col.rename.input.1)){
+  col.ren.1<-paste("awk 'NR>1{$1=\"", col.rename.input.1, "\"(++i); print}' ", col.rename.input.2, " > ", rename.input.3, sep = "")
+}
+
+for(i in 1:length(col.rename.input.3)){
+  col.ren.2<-paste("{ printf 'Representative_Sequence\\ttotal\\n'; cat ", col.rename.input.3, ";} > ", col.rename.input.4, sep = "")
+}
+
+write.table(col.ren.1, quote = F, col.names = F, row.names = F, file ="col_renamed.sh", append = T)
+write.table(col.ren.2, quote = F, col.names = F, row.names = F, file ="col_renamed.sh", append = T)
+
+########################## Deunique sequences in mothur   ################
+
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for count.seqs
+deunique.seqs.1<-paste(groups, ".full.sequence.matches.unique.sorted.ren.fasta", sep = "")
+deunique.seqs.2<-paste(groups, ".filtered.match.sorted.ren.count_table", sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "deunique_seqs_mothur", append = F)
+
+for(i in 1:length(deunique.seqs.1)){
+  deun.seqs.1<-paste("deunique.seqs(fasta=", deunique.seqs.1, ", count=", col.rename.input.2, ")", sep = "")
+}
+
+write.table(deun.seqs.1, quote = F, col.names = F, row.names = F, file ="deunique_seqs_mothur", append = T)
+
+
+
+
