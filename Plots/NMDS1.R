@@ -1,5 +1,6 @@
-#NMDS of community compostion using share_subsampled OTU table to 545 reads.
+#NMDS of community compostion using phylotype table (output of mothur) subsampled to 545 reads.
 #Using Bray Curtis and Jaccard distances
+#From:http://userweb.eng.gla.ac.uk/umer.ijaz/bioinformatics/ecological.html
 
 library(ggplot2)
 library(vegan)
