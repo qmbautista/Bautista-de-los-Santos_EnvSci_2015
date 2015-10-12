@@ -1,11 +1,9 @@
-#Script to execute all sub-scripts
-
 # A script in R to write the scripts to process the fasta files 
 # For fasta files that have been quality screened (converted from fastq to fasta using fastqc and pear)
 
 #Script names: uniq_seqences_mothur, blastn_all_unique_fasta_files.sh, unique_blast_sorted_tab_files.sh, 
 #....seqs_ids_sorted_blast_tab.sh, query_seqs_matches_original_seq_sorted_id.sh, blastdbcmd_full_seqs.sh
-#... sort_names_files.sh, join_names_files.sh, count_seqs_mothur, sorted_renamed.sh, deunique_seqs_mothur
+#... sort_names_files.sh, join_names_files.sh, count_seqs_mothur, sorted_renamed.sh, deunique_seqs_mothur, make_group_mothur
 
 ######## Unique each of the fasta files using mothur ###
 
@@ -43,11 +41,6 @@ for(i in 1:length(fasta.files)){
 # from within the directory where the downloaded fasta file is
 
 #makeblastdb -in SILVA_119_SSURef_Nr99_tax_silva.fasta -input_type fasta -dbtype nucl -title SILVA119NR -parse_seqids -out SILVA119NR
-
-# write a script to run blastn on each of the unique fasta files
-# again use R to write the script which needs to be executed to run blastn
-
-#R --vanilla
 
 # define the raw fasta files
 fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
@@ -477,6 +470,43 @@ for(i in 1:length(deunique.seqs.1)){
 }
 
 write.table(deun.seqs.1, quote = F, col.names = F, row.names = F, file ="deunique_seqs_mothur", append = T)
+
+######################In mothur, make groups file for each redundant fasta file, will create one group file with all sequences from all groups
+
+fasta.files<-c("Roeselers_2014_FN_P10.fasta" , "Roeselers_2014_FN_P11.fasta", "Roeselers_2014_FN_P12.fasta", "Roeselers_2014_FN_P13.fasta", "Roeselers_2014_FN_P14.fasta", 
+               "Roeselers_2014_FN_P15.fasta", "Roeselers_2014_FN_P16.fasta", "Roeselers_2014_FN_P17.fasta", "Roeselers_2014_FN_P18.fasta", "Roeselers_2014_FN_P19.fasta", 
+               "Roeselers_2014_FN_P1_R1.contigs.fasta", "Roeselers_2014_FN_P20.fasta", "Roeselers_2014_FN_P21.fasta", "Roeselers_2014_FN_P22.fasta", "Roeselers_2014_FN_P23.fasta", 
+               "Roeselers_2014_FN_P24.fasta", "Roeselers_2014_FN_P25.fasta", "Roeselers_2014_FN_P26.fasta", "Roeselers_2014_FN_P27.fasta", "Roeselers_2014_FN_P28.fasta", 
+               "Roeselers_2014_FN_P29.fasta", "Roeselers_2014_FN_P2_R1.contigs.fasta", "Roeselers_2014_FN_P30.fasta", "Roeselers_2014_FN_P31.fasta", "Roeselers_2014_FN_P3_R1.contigs.fasta", 
+               "Roeselers_2014_FN_P4_R1.contigs.fasta", "Roeselers2014_FN_P5.fasta", "Roeselers2014_FN_P6.fasta", "Roeselers2014_FN_P7.fasta", "Roeselers_2014_FN_P8.fasta", 
+               "Roeselers_2014_FN_P9.fasta", "Roeselers_2014_T_P10.fasta", "Roeselers_2014_T_P11.fasta", "Roeselers_2014_T_P12.fasta", "Roeselers_2014_T_P13.fasta", 
+               "Roeselers_2014_T_P14.fasta", "Roeselers_2014_T_P15.fasta", "Roeselers_2014_T_P16.fasta", "Roeselers_2014_T_P17.fasta", "Roeselers_2014_T_P18.fasta", 
+               "Roeselers_2014_T_P19.fasta", "Roeselers_2014_T_P1_R1.contigs.fasta", "Roeselers_2014_T_P20.fasta", "Roeselers_2014_T_P21.fasta", "Roeselers_2014_T_P22.fasta", 
+               "Roeselers_2014_T_P23.fasta", "Roeselers_2014_T_P24.fasta", "Roeselers_2014_T_P25.fasta", "Roeselers_2014_T_P26.fasta", "Roeselers_2014_T_P27.fasta", 
+               "Roeselers_2014_T_P28.fasta", "Roeselers_2014_T_P29.fasta", "Roeselers_2014_T_P2_R1.contigs.fasta", "Roeselers_2014_T_P31.fasta", "Roeselers_2014_T_P3_R1.contigs.fasta", 
+               "Roeselers_2014_T_P4_R1.contigs.fasta", "Roeselers2014_T_P5.fasta", "Roeselers2014_T_P6.fasta", "Roeselers_2014_T_P8.fasta", "Roeselers_2014_T_P9.fasta")
+
+# extract the name part of this without the .fasta in variable called groups
+
+temp<- strsplit(fasta.files, split = ".", fixed = T)
+groups <- rep("", length(temp))
+for(i in 1:length(temp)){
+  groups[i]<- temp[[i]][1]
+}
+
+# define the input files and output files for count.seqs
+make.group.1<-paste(groups, ".full.sequence.matches.unique.sorted.ren.redundant.fasta", sep = "")
+make.group.2<-paste(groups, sep = "")
+
+# write the script
+# intiate and call bash
+write.table("#!/bin/bash", quote = F, col.names = F, row.names = F, file = "make_group_mothur", append = F)
+
+for(i in 1:length(make.group.1)){
+  make.gr.1<-paste("make.group(fasta=", make.group.1, ", groups=", make.group.2, ")", sep = "")
+}
+
+write.table(make.gr.1, quote = F, col.names = F, row.names = F, file ="make_group_mothur", append = T)
 
 
 
