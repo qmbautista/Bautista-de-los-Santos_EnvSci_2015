@@ -1,0 +1,39 @@
+#!/bin/bash
+ 
+#Script to execute sub-scripts written with 'write_scripts.R' 
+
+#Script names: uniq_seqences_mothur, blastn_all_unique_fasta_files.sh, unique_blast_sorted_tab_files.sh, 
+#....seqs_ids_sorted_blast_tab.sh, query_seqs_matches_original_seq_sorted_id.sh, blastdbcmd_full_seqs.sh
+#... sort_names_files.sh, join_names_files.sh, count_seqs_mothur, sorted_renamed.sh, deunique_seqs_mothur, make_group_mothur
+
+chmod 700 blastn_all_unique_fasta_files.sh
+chmod 700 unique_blast_sorted_tab_files.sh
+chmod 700 seqs_ids_sorted_blast_tab.sh,
+chmod 700 query_seqs_matches_original_seq_sorted_id.sh 
+chmod 700 blastdbcmd_full_seqs.sh
+chmod 700sort_names_files.sh 
+chmod 700join_names_files.sh  
+chmod 700sorted_renamed.sh 
+
+/home/opt/mothur/mothur uniq_seqences_mothur 
+sh blastn_all_unique_fasta_files.sh 
+sh unique_blast_sorted_tab_files.sh 
+sh seqs_ids_sorted_blast_tab.sh 
+sh query_seqs_matches_original_seq_sorted_id.sh 
+sh blastdbcmd_full_seqs.sh
+sh sort_names_files.sh 
+sh join_names_files.sh
+/home/opt/mothur/mothur count_seqs_mothur 
+sh sorted_renamed.sh 
+/home/opt/mothur/mothur deunique_seqs_mothur 
+/home/opt/mothur/mothur make_group_mothur
+
+######Merge all *.full.sequence.matches.unique.sorted.ren.redundant.fasta files
+
+cat *.full.sequence.matches.unique.sorted.ren.redundant.fasta files > merged_all.ren.redundant.fasta
+
+######Merge all *.full.sequence.matches.unique.sorted.ren.redundant.group
+
+cat *.full.sequence.matches.unique.sorted.ren.redundant.group > merged_all.ren.redundant.group
+
+
