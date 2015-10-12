@@ -1,0 +1,27 @@
+#Phylotype analysis in mothur
+
+#Fasta file = merged_all.ren.redundant.fasta
+#Groups file = merged_all.ren.redundant.group
+
+#In mothur, make unique sequences again
+mothur > unique.seqs(fasta=merged_all.ren.redundant.fasta)
+
+#Make count file
+count.seqs(name=merged_all.ren.redundant.names, group=merged_all.ren.redundant.groups)
+
+#Phylotype analysis in mothur
+classify.seqs(fasta=merged_all.ren.redundant.fasta, count=merged_all.ren.redundant.count_table, reference=*SilvaSSURef_115_NR, taxonomy=*SilvaSSURef_115_NR, cutoff=80)
+
+#To remove sequences not classified as bacteria in the GG database
+remove.lineage(fasta=subset_all.ren.redundant.unique.fasta, count=subset_all.ren.redundant.count_table, taxonomy=subset_all.ren.redundant.unique.gg.wang.taxonomy, taxon=unknown)
+
+#Make phylotypes
+phylotype(taxonomy=*.taxonomy)
+
+#Make phylotype (OTU) table
+mothur > make.shared(list=*.list, count=*.count_table, label=1)
+
+#Get taxonomy of each phylotype
+classify.otu(list=*.list, count=*.count_table, taxonomy=*.taxonomy, label=1)
+
+#Get representative sequence of each phylotype
