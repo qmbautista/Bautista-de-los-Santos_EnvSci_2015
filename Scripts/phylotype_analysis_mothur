@@ -1,27 +1,53 @@
 #Phylotype analysis in mothur
 
-#Fasta file = merged_all.ren.redundant.fasta
-#Groups file = merged_all.ren.redundant.group
+#Fasta file = merged_all.ren.redundant.fasta, all the deuniqued fasta files obtained after executing execute_scripts.sh, merged together
+#Groups file = merged_all.ren.redundant.group, all the group files obtained after executing execute_scripts.sh, merged together
 
 #In mothur, make unique sequences again
-mothur > unique.seqs(fasta=merged_all.ren.redundant.fasta)
+unique.seqs(fasta=merged_all.ren.redundant.fasta)
 
 #Make count file
 count.seqs(name=merged_all.ren.redundant.names, group=merged_all.ren.redundant.groups)
 
+#Align sequences to the Silva database (full 16S)
+align.seqs(fasta=merged_all.ren.redundant.unique.fasta, reference=silva.fasta)
+
 #Phylotype analysis in mothur
-classify.seqs(fasta=merged_all.ren.redundant.fasta, count=merged_all.ren.redundant.count_table, reference=*SilvaSSURef_115_NR, taxonomy=*SilvaSSURef_115_NR, cutoff=80)
+classify.seqs(fasta=merged_all.ren.redundant.unique.fasta, count=merged_all.ren.redundant.count_table, reference=*SilvaSSURef_115_NR, taxonomy=*SilvaSSURef_115_NR, cutoff=80)
 
 #To remove sequences not classified as bacteria in the GG database
-remove.lineage(fasta=subset_all.ren.redundant.unique.fasta, count=subset_all.ren.redundant.count_table, taxonomy=subset_all.ren.redundant.unique.gg.wang.taxonomy, taxon=unknown)
+remove.lineage(fasta=subset_all.ren.redundant.unique.fasta, count=subset_all.ren.redundant.count_table, taxonomy=current, taxon=unknown)
 
 #Make phylotypes
-phylotype(taxonomy=*.taxonomy)
+phylotype(taxonomy=current)
 
 #Make phylotype (OTU) table
-mothur > make.shared(list=*.list, count=*.count_table, label=1)
+make.shared(list=current, count=current, label=1)
 
 #Get taxonomy of each phylotype
-classify.otu(list=*.list, count=*.count_table, taxonomy=*.taxonomy, label=1)
+classify.otu(list=current, count=current, taxonomy=current, label=1)
 
-#Get representative sequence of each phylotype
+#Get representative sequence of each phylotype, must align sequences first
+consensus.seqs(fasta=current, list=current, count=current, cutoff=95)
+
+#Subsample OTU table
+#sub.sample(shared=current, size=xxxx)
+
+#List OTU lables
+list.otulabels(shared=*.subsampled.shared)
+#Output file *.otulabels
+#Rename *.otulables as *.otulables.accnos (system *.otulables *.otulables.accnos)
+
+#Get sequences corresponding to OTUs in subsampled shared file
+get.seqs(accnos=*.otulables.accnos, fasta=current)
+
+#Use the get.seqs output and the sub-sampled OTU table in Umer's script to generate ordination plots based on Unifrac distances 
+
+#Use get.communitytype with subsampled OTU table to see if the data can be partitioned in two communities (Dis vs NoDis)
+#get.communitytype(shared=stability.an.0.03.subsample.shared)
+
+#Check Get.coremicrobiome command in mothur, do for Dis and NoDis groups separately, and for all (core microbiome of all DW systems)
+
+
+
+
